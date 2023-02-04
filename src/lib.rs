@@ -5,5 +5,6 @@
 // Version: 0.1.0
 
 pub fn code_checker() {
-    println!("Hello, world!");
+    let pi = 3.14;
+    println!("Hello, world!, {}", pi);
 }
