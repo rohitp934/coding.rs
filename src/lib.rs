@@ -5,6 +5,7 @@
 // Version: 0.1.0
 
 pub fn code_checker() {
+    assert!(false);
     const PI: f32 = 3.14;
     println!("Hello, world!, {}", PI);
 }
