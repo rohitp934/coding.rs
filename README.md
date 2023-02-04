@@ -20,12 +20,12 @@ To get started with the project, you can follow these steps:
 1. **Clone the repository to your local machine using the following command:**
 
     ```bash
-    git clone https://github.com/<username>/rust-code-execution-server.git
+    git clone git@github.com:rohitp934/rustycoding.git
     ```
 2. **Navigate to the repository root directory:**
 
     ```bash
-    cd rust-code-execution-server
+    cd rustycoding
     ```
 3. **Use cargo run to run the project:**
     ```bash
