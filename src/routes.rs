@@ -1,4 +1,5 @@
 use actix_web::{get, web, HttpResponse, Responder};
+use log::info;
 use serde::Deserialize;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -8,6 +9,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 #[get("/")]
 async fn index() -> impl Responder {
+    info!("Rusty coding at your service!");
     HttpResponse::Ok().body("Actix Web Rust Server is running!")
 }
 #[derive(Deserialize)]
