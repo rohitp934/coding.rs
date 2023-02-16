@@ -1,0 +1,39 @@
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+generator client {
+  // Corresponds to the cargo alias created earlier
+  provider = "cargo prisma"
+  // The location to generate the client. Is relative to the position of the schema
+  output   = "../src/prisma.rs"
+}
+
+model Question {
+  id               String           @id @default(uuid())
+  question         String
+  language         String
+  testcases        Testcase[]
+  sample_testcases SampleTestCase[]
+  author_solution  String
+  timeout          Int
+  title            String
+}
+
+model Testcase {
+  id         String   @id @default(uuid())
+  input      String
+  output     String
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+}
+
+model SampleTestCase {
+  id         String   @id @default(uuid())
+  input      String
+  output     String
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+}

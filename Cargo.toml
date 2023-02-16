@@ -5,7 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+members = [
+  "prisma-cli"
+]
+
 [dependencies]
+prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.4", default-features = false, features = ["migrations", "postgresql"] }
 actix-web = "4"
 env_logger = "0.10.0"
 log = "0.4.17"
