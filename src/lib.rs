@@ -16,7 +16,7 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
             if let Some(captures) = re.captures(src) {
                 let class_name = captures.get(1).unwrap().as_str();
                 println!("Public class name: {}", class_name);
-                Ok(String::from(format!("{}.java", class_name)))
+                Ok(format!("{}.java", class_name))
             } else {
                 Err(CodingError::InvalidPublicClass)
             }
