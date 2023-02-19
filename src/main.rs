@@ -3,7 +3,7 @@ use actix_web::{middleware::Logger, App, HttpServer};
 use env_logger::Env;
 use routes::config;
 
-// use rustycoding::code_checker;
+// use rustycoding::execute;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

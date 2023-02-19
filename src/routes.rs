@@ -2,7 +2,7 @@
 use actix_web::{get, web, HttpResponse, Responder, post};
 use log::info;
 use serde::Deserialize;
-use rustycoding::{code_checker, types::Question};
+use rustycoding::{execute, types::Question};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(index);
@@ -34,6 +34,5 @@ async fn check(info: web::Query<CheckQuery>) -> impl Responder {
 #[post("/run")]
 async fn run(body: web::Json<Question>) -> impl Responder {
   let question = body.into_inner();
-  let response = code_checker(question);
-  HttpResponse::Ok().body(response)
+  execute(question)
 }
