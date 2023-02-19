@@ -1,8 +1,8 @@
 mod routes;
-
 use actix_web::{middleware::Logger, App, HttpServer};
 use env_logger::Env;
 use routes::config;
+
 // use rustycoding::code_checker;
 
 #[actix_web::main]
