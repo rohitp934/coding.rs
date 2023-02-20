@@ -1,5 +1,6 @@
 {
   "editor.detectIndentation": false,
 "editor.tabSize": 4,
-"rust-analyzer.diagnostics.enable": false
+"rust-analyzer.diagnostics.enable": false,
+"editor.formatOnSave": true
 }
