@@ -14,6 +14,8 @@ pub struct Question {
 pub enum CodingError {
     #[snafu(display("The given Java source code does not have a valid public class.\nExpected something like: `public class Main`."))]
     InvalidPublicClass,
+    #[snafu(display("Unable to create file."))]
+    FileCreationError,
 }
 
 
