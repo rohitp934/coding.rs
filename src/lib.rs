@@ -1,5 +1,5 @@
 use actix_web::{HttpResponse, Responder};
-use log::{debug, error, info};
+use log::{debug, error};
 use regex::Regex;
 use std::path::Path;
 use tokio::process::Command;
@@ -42,6 +42,15 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
                 Err(CodingError::InvalidPublicClass)
             }
         }
+        "c" => Ok(String::from("main.c")),
+        "cpp" => Ok(String::from("main.cpp")),
+        "csharp" => Ok(String::from("main.cs")),
+        "go" => Ok(String::from("main.go")),
+        "javascript" => Ok(String::from("index.js")),
+        "python" => Ok(String::from("main.py")),
+        "ruby" => Ok(String::from("main.rb")),
+        "rust" => Ok(String::from("main.rs")),
+        "typescript" => Ok(String::from("index.ts")),
         _ => Ok(String::from("")),
     }
 }
@@ -56,15 +65,23 @@ fn is_compiled_language(language: &str) -> bool {
 
 async fn init(question: &Question) -> Result<(String, String), CodingError> {
     let file_name = make_filename(&question.language, &question.source_code)?;
-    info!("ID: {}, The file name is {}", question.id, file_name);
     let folder_name = format!("{}{}", question.language, Uuid::new_v4());
+    if let Err(err) = tokio::fs::create_dir_all(format!("tmp/{}", folder_name)).await {
+        error!(
+            "Something went wrong when trying to create the subdirectories :: {}",
+            err.to_string()
+        );
+        return Err(CodingError::FileCreationError);
+    };
     let src_file_path = format!("tmp/{}/{}", folder_name, file_name);
-    if tokio::fs::write(&src_file_path, &question.source_code)
-        .await
-        .is_err()
-    {
+    if let Err(err) = tokio::fs::write(&src_file_path, &question.source_code).await {
+        error!(
+            "Something went wrong when trying to create the source file. {}",
+            err.to_string()
+        );
         return Err(CodingError::FileCreationError);
     }
+    debug!("Source file created successfully.");
     Ok((file_name, folder_name))
 }
 
@@ -119,7 +136,6 @@ impl CompiledProgram {
                     if output.status.code() != Some(0) {
                         Err(CodingError::CompileError)
                     } else {
-                        // println!("Compilation successful for: {}", self.folder_name);
                         Ok(())
                     }
                 } else {
@@ -127,6 +143,16 @@ impl CompiledProgram {
                 }
             }
         }
+    }
+}
+
+async fn cleanup(folder_name: &str) -> Result<(), CodingError> {
+    match tokio::fs::remove_dir_all(&folder_name).await {
+        Err(err) => {
+            error!("Cleanup Error :: {}", err.to_string());
+            Err(CodingError::CleanupError)
+        }
+        Ok(()) => Ok(()),
     }
 }
 
@@ -143,20 +169,27 @@ pub async fn execute(question: Question) -> impl Responder {
         }
         Ok(file_info) => {
             let (file_name, folder_name) = file_info;
-            let src_file_path = format!("{}/{}", folder_name, file_name);
+            let src_file_path = format!("tmp/{}/{}", folder_name, file_name);
+            debug!("Source file path: {}", src_file_path);
             if is_compiled_language(&question.language) {
                 let compilation_program = CompiledProgram {
                     src_file_path,
                     file_name_without_ext: if question.language == "java" {
                         unimplemented!();
                     } else {
-                        format!("{}/Program", folder_name)
+                        format!("tmp/{}/main", folder_name)
                     },
                     language: question.language.clone(),
                 };
                 let compile_output = compilation_program.compile().await;
                 if let Err(err) = compile_output {
-                    error!("Something went wrong for id: {}!\n{}", &question.id, err);
+                    error!("Compilation Error for id: {}! :: {}", &question.id, err);
+                    if let Err(err) = cleanup(&format!("tmp/{}", folder_name)).await {
+                        return HttpResponse::InternalServerError().json(ErrorResponse {
+                            id: question.id,
+                            error: err.to_string(),
+                        });
+                    }
                     let response = ErrorResponse {
                         id: question.id,
                         error: err.to_string(),
@@ -164,7 +197,13 @@ pub async fn execute(question: Question) -> impl Responder {
                     return HttpResponse::BadRequest().json(response);
                 }
             }
-            HttpResponse::Ok().json(String::from("Hello World"))
+            if let Err(err) = cleanup(&format!("tmp/{}", folder_name)).await {
+                return HttpResponse::InternalServerError().json(ErrorResponse {
+                    id: question.id,
+                    error: err.to_string(),
+                });
+            }
+            HttpResponse::Ok().json(String::from("Compilation successful"))
         }
     }
 }

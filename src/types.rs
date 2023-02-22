@@ -12,18 +12,22 @@ pub struct Question {
 
 #[derive(Debug, Snafu)]
 pub enum CodingError {
-    #[snafu(display("The given Java source code does not have a valid public class.\nExpected something like: `public class Main`."))]
+    #[snafu(display("InvalidPublicClass :: The given Java source code does not have a valid public class.\nExpected something like: `public class Main`."))]
     InvalidPublicClass,
-    #[snafu(display("Unable to create file."))]
+    #[snafu(display("FileCreationError :: Unable to create file."))]
     FileCreationError,
-    #[snafu(display("Something went wrong during File I/O op."))]
+    #[snafu(display("FileError :: Something went wrong during File I/O op."))]
     FileError,
-    #[snafu(display("Something went wrong during execution of child process."))]
+    #[snafu(display("ProcessError :: Something went wrong during execution of child process."))]
     ProcessError,
-    #[snafu(display("Invalid utf8 character found in std console of child process."))]
+    #[snafu(display(
+        "InvalidStringFromConsole :: Invalid utf8 character found in std console of child process."
+    ))]
     InvalidStringFromConsole,
-    #[snafu(display("An error occurred during compilation of source code."))]
+    #[snafu(display("CompileError :: An error occurred during compilation of source code."))]
     CompileError,
+    #[snafu(display("CleanupError :: An error occurred during cleanup of source code."))]
+    CleanupError,
 }
 
 #[derive(Serialize)]
