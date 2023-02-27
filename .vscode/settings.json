@@ -1,6 +1,9 @@
 {
-  "editor.detectIndentation": false,
-"editor.tabSize": 4,
-"rust-analyzer.diagnostics.enable": false,
-"editor.formatOnSave": true
+	"editor.detectIndentation": false,
+	"editor.tabSize": 4,
+	"rust-analyzer.diagnostics.enable": false,
+	"editor.formatOnSave": true,
+	"files.watcherExclude": {
+		"**/target": true
+	}
 }
