@@ -50,7 +50,18 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
         "python" => Ok(String::from("main.py")),
         "ruby" => Ok(String::from("main.rb")),
         "rust" => Ok(String::from("main.rs")),
+        "scala" => {
+            let re = Regex::new(r"object\s+(\w+)\s*\{").unwrap();
+            if let Some(captures) = re.captures(src) {
+                let class_name = captures.get(1).unwrap().as_str();
+                Ok(format!("{}.scala", class_name))
+            } else {
+                Err(CodingError::InvalidPublicClass)
+            }
+        }
+        "swift" => Ok(String::from("main.swift")),
         "typescript" => Ok(String::from("index.ts")),
+        "zig" => Ok(String::from("main.zig")),
         _ => Ok(String::from("")),
     }
 }
