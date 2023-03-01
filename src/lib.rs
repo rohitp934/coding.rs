@@ -47,6 +47,7 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
         "csharp" => Ok(String::from("main.cs")),
         "go" => Ok(String::from("main.go")),
         "javascript" => Ok(String::from("index.js")),
+        "kotlin" => Ok(String::from("main.kt")),
         "python" => Ok(String::from("main.py")),
         "ruby" => Ok(String::from("main.rb")),
         "rust" => Ok(String::from("main.rs")),
@@ -120,13 +121,36 @@ impl CompiledProgram {
                 cmd = String::from("g++");
                 args = format!("{} -o {}", self.src_file_path, self.file_name_without_ext);
             }
+            "c#" => {
+                cmd = String::from("mcs");
+                args = self.src_file_path.to_string();
+            }
+            "kotlin" => {
+                cmd = String::from("kotlinc");
+                args = format!(
+                    "{} -include-runtime -d {}.jar",
+                    self.src_file_path, self.file_name_without_ext
+                );
+            }
             "rust" => {
                 cmd = String::from("rustc");
                 args = format!("{} -o {}", self.src_file_path, self.file_name_without_ext);
             }
-            "c#" => {
-                cmd = String::from("mcs");
+            "scala" => {
+                cmd = String::from("scalac");
                 args = self.src_file_path.to_string();
+            }
+            "swift" => {
+                cmd = String::from("swiftc");
+                args = self.src_file_path.to_string();
+            }
+            "typescript" => {
+                cmd = String::from("npx tsc");
+                args = self.src_file_path.to_string();
+            }
+            "zig" => {
+                cmd = String::from("zig");
+                args = format!("build-exe {}", self.src_file_path);
             }
             _ => {
                 return Err(CodingError::FileError);
