@@ -16,6 +16,8 @@ pub enum CodingError {
     InvalidPublicClass,
     #[snafu(display("FileCreationError :: Unable to create file."))]
     FileCreationError,
+    #[snafu(display("FileError :: Unable to extract file stem."))]
+    FileNameError,
     #[snafu(display("FileError :: Something went wrong during File I/O op."))]
     FileError,
     #[snafu(display("ProcessError :: Something went wrong during execution of child process."))]

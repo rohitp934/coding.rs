@@ -12,7 +12,6 @@ use uuid::Uuid;
 // Version: 0.1.0
 pub mod types;
 
-//TODO: Implement run
 // struct Program {
 //     file_name: String,
 //     folder_name: String,
@@ -47,6 +46,7 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
         "csharp" => Ok(String::from("main.cs")),
         "go" => Ok(String::from("main.go")),
         "javascript" => Ok(String::from("index.js")),
+        "julia" => Ok(String::from("main.jl")),
         "kotlin" => Ok(String::from("main.kt")),
         "python" => Ok(String::from("main.py")),
         "ruby" => Ok(String::from("main.rb")),
@@ -64,6 +64,17 @@ fn make_filename(language: &str, src: &str) -> Result<String, CodingError> {
         "typescript" => Ok(String::from("index.ts")),
         "zig" => Ok(String::from("main.zig")),
         _ => Ok(String::from("")),
+    }
+}
+
+fn get_file_name_without_ext(file_name: &str) -> Result<&str, CodingError> {
+    let file_stem = Path::new(file_name).file_stem();
+    match file_stem {
+        Some(no_ext) => {
+            let no_ext = no_ext.to_str().unwrap();
+            Ok(no_ext)
+        }
+        None => Err(CodingError::FileNameError),
     }
 }
 
@@ -181,6 +192,13 @@ impl CompiledProgram {
     }
 }
 
+// impl Program {
+//     async fn run(&self) -> Result<String, CodingError> {
+//         Ok(String::from("Program ran successfully!"))
+//     }
+//     async fn score(&self) {}
+// }
+
 async fn cleanup(folder_name: &str) -> Result<(), CodingError> {
     match tokio::fs::remove_dir_all(&folder_name).await {
         Err(err) => {
@@ -192,53 +210,55 @@ async fn cleanup(folder_name: &str) -> Result<(), CodingError> {
 }
 
 pub async fn execute(question: Question) -> impl Responder {
-    let src = init(&question).await;
-    match src {
+    let src = match init(&question).await {
+        Ok(init_response) => init_response,
         Err(err) => {
             error!("Something went wrong for id: {}!\n{}", &question.id, err);
-            let response = ErrorResponse {
+            return HttpResponse::BadRequest().json(ErrorResponse {
                 id: question.id,
                 error: err.to_string(),
-            };
-            HttpResponse::BadRequest().json(response)
+            });
         }
-        Ok(file_info) => {
-            let (file_name, folder_name) = file_info;
-            let src_file_path = format!("tmp/{}/{}", folder_name, file_name);
-            debug!("Source file path: {}", src_file_path);
-            if is_compiled_language(&question.language) {
-                let compilation_program = CompiledProgram {
-                    src_file_path,
-                    file_name_without_ext: if question.language == "java" {
-                        unimplemented!();
-                    } else {
-                        format!("tmp/{}/main", folder_name)
-                    },
-                    language: question.language.clone(),
-                };
-                let compile_output = compilation_program.compile().await;
-                if let Err(err) = compile_output {
-                    error!("Compilation Error for id: {}! :: {}", &question.id, err);
-                    if let Err(err) = cleanup(&format!("tmp/{}", folder_name)).await {
-                        return HttpResponse::InternalServerError().json(ErrorResponse {
-                            id: question.id,
-                            error: err.to_string(),
-                        });
-                    }
-                    let response = ErrorResponse {
-                        id: question.id,
-                        error: err.to_string(),
-                    };
-                    return HttpResponse::BadRequest().json(response);
-                }
-            }
+    };
+    let (file_name, folder_name) = src;
+    let src_file_path = format!("tmp/{}/{}", folder_name, file_name);
+    debug!("Source file path: {}", src_file_path);
+    let file_name_no_ext = match get_file_name_without_ext(&file_name) {
+        Ok(res) => res,
+        Err(err) => {
+            return HttpResponse::InternalServerError().json(ErrorResponse {
+                id: question.id,
+                error: err.to_string(),
+            });
+        }
+    };
+    if is_compiled_language(&question.language) {
+        let compilation_program = CompiledProgram {
+            src_file_path,
+            file_name_without_ext: format!("tmp/{}/{}", folder_name, file_name_no_ext),
+            language: question.language.clone(),
+        };
+        let compile_output = compilation_program.compile().await;
+        if let Err(err) = compile_output {
+            error!("Compilation Error for id: {}! :: {}", &question.id, err);
             if let Err(err) = cleanup(&format!("tmp/{}", folder_name)).await {
                 return HttpResponse::InternalServerError().json(ErrorResponse {
                     id: question.id,
                     error: err.to_string(),
                 });
             }
-            HttpResponse::Ok().json(String::from("Compilation successful"))
+            let response = ErrorResponse {
+                id: question.id,
+                error: err.to_string(),
+            };
+            return HttpResponse::BadRequest().json(response);
         }
     }
+    if let Err(err) = cleanup(&format!("tmp/{}", folder_name)).await {
+        return HttpResponse::InternalServerError().json(ErrorResponse {
+            id: question.id,
+            error: err.to_string(),
+        });
+    }
+    HttpResponse::Ok().json(String::from("Compilation successful"))
 }
