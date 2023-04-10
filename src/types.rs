@@ -7,7 +7,7 @@ pub struct Question {
     pub language: String,
     pub source_code: String,
     pub timeout: i32,
-    pub sample_testcases: Vec<String>,
+    pub sample_testcases: Vec<(String, String)>,
 }
 
 #[derive(Debug, Snafu)]
@@ -30,6 +30,8 @@ pub enum CodingError {
     CompileError,
     #[snafu(display("CleanupError :: An error occurred during cleanup of source code."))]
     CleanupError,
+    #[snafu(display("TimeLimitExceeded :: The user's program exceeded the time limit."))]
+    TimeLimitExceeded,
 }
 
 #[derive(Serialize)]
