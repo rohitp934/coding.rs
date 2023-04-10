@@ -1,4 +1,4 @@
-# Rusty Coding
+# Coding.rs
 
 This repository is a backend web server written in Rust that allows you to execute and run code through a REST API. It uses Rust to run the code and return the output.
 
@@ -20,12 +20,12 @@ To get started with the project, you can follow these steps:
 1. **Clone the repository to your local machine using the following command:**
 
     ```bash
-    git clone git@github.com:rohitp934/rustycoding.git
+    git clone git@github.com:rohitp934/coding.rs.git
     ```
 2. **Navigate to the repository root directory:**
 
     ```bash
-    cd rustycoding
+    cd coding.rs
     ```
 3. **Use cargo run to run the project:**
     ```bash
