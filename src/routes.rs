@@ -1,10 +1,12 @@
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use log::info;
+use rustycoding::{execute, types::Question};
 use serde::Deserialize;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(index);
     cfg.service(check);
+    cfg.service(run);
 }
 
 #[get("/")]
@@ -24,4 +26,10 @@ async fn check(info: web::Query<CheckQuery>) -> impl Responder {
     } else {
         HttpResponse::BadRequest().body("You messed up fr!")
     }
+}
+
+#[post("/run")]
+async fn run(body: web::Json<Question>) -> impl Responder {
+    let question = body.into_inner();
+    execute(question).await
 }
